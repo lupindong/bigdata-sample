@@ -19,6 +19,8 @@ package net.lovexq.simplebigdata.hdfs;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 
@@ -29,11 +31,16 @@ import java.io.IOException;
  * @time 2019-03-25 22:47
  */
 @Slf4j
-public class HdfsClientExample {
+public class HdfsClientTest {
 
-    public static void main(String[] args) throws IOException {
-        // 获取FileSystem对象
-        FileSystem fileSystem = getFileSystem();
+    private static FileSystem fileSystem;
+
+    @Before
+    public void getFileSystem() throws IOException {
+        Configuration configuration = new Configuration();
+
+        fileSystem = FileSystem.get(configuration);
+
         log.info("{}", fileSystem);
     }
 
@@ -43,12 +50,8 @@ public class HdfsClientExample {
      * @return
      * @throws IOException
      */
-    public static FileSystem getFileSystem() throws IOException {
-
-        Configuration configuration = new Configuration();
-
-        FileSystem fileSystem = FileSystem.get(configuration);
-
-        return fileSystem;
+    @Test
+    public void testGetFileSystem() {
+        log.info("{}", fileSystem);
     }
 }
