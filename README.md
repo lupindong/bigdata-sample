@@ -1,1 +1,1 @@
-# simple-bigdata
+# bigdata-sample
