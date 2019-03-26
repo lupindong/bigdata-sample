@@ -18,14 +18,21 @@ package net.lovexq.simplebigdata.hdfs;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- * HDFS客户端示例
+ * HDFS客户端测试类
  *
  * @author LuPindong
  * @time 2019-03-25 22:47
@@ -45,13 +52,41 @@ public class HdfsClientTest {
     }
 
     /**
-     * 获取FileSystem对象
+     * 上传本地文件到HDFS
+     * <br/>
+     * -put [-f] [-p] [-l] <localsrc> ... <dst>
      *
      * @return
      * @throws IOException
      */
     @Test
-    public void testGetFileSystem() {
-        log.info("{}", fileSystem);
+    public void testUploadLocalFileToHdfs() throws IOException {
+        String srcFileName = "D:\\home\\lovexq\\goldenjobs\\data\\access.log";
+        String dstFileName = "/user/admin/lovexq/goldenjobs/data/access.log";
+        Path dstPath = new Path(dstFileName);
+
+        try (FileInputStream inputStream = new FileInputStream(new File(srcFileName));
+             FSDataOutputStream outputStream = fileSystem.create(dstPath)) {
+
+            IOUtils.copyBytes(inputStream, outputStream, 4096, false);
+        }
+    }
+
+    /**
+     * 读取HDFS文件
+     * <br/>
+     * -put [-f] [-p] [-l] <localsrc> ... <dst>
+     *
+     * @return
+     * @throws IOException
+     */
+    @Test
+    public void testReadHdfsFile() throws IOException {
+        String srcFileName = "/user/admin/lovexq/goldenjobs/data/access.log";
+        Path srcPath = new Path(srcFileName);
+
+        try (FSDataInputStream inputStream = fileSystem.open(srcPath)) {
+            IOUtils.copyBytes(inputStream, System.out, 4096, false);
+        }
     }
 }
