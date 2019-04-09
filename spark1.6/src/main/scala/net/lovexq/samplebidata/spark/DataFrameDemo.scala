@@ -19,15 +19,14 @@ package net.lovexq.samplebidata.spark
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * ${DESCRIPTION}
+  * DataFrameDemo
   *
   * @author LuPindong
   * @time 2019-04-08 21:43
   */
-object SimpleApp {
+object DataFrameDemo {
   def main(args: Array[String]): Unit = {
-
-    val appName = "Simple Application"
+    val appName = "DataFrameDemo Application"
 
     val master = "local"
 
@@ -35,17 +34,30 @@ object SimpleApp {
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "hdfs://server2:8020/user/admin/lovexq/mapreduce/input"
+    val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
-    val logData = sc.textFile(textFilePath).cache()
+    // Create the DataFrame
+    val df = sqlContext.read.json("file:///D:\\WorkSpaces\\2019\\bigdata-sample\\spark1.6\\" +
+      "src\\main\\resources\\data\\people.json")
 
-    val numAs = logData.filter(_.contains("a")).count()
+    // Show the content of the DataFrame
+    df.show()
 
-    val numBs = logData.filter(_.contains("b")).count()
+    // Print the schema in a tree format
+    df.printSchema()
 
-    println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))
+    // Select only the "name" column
+    df.select("name").show()
+
+    // Select everybody, but increment the age by 1
+    df.select(df("name"), df("age") + 1).show()
+
+    // Select people older than 21
+    df.filter(df("age") > 21).show()
+
+    // Count people by age
+    df.groupBy("age").count().show()
 
     sc.stop()
-
   }
 }
