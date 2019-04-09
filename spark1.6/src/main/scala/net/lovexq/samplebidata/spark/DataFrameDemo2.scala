@@ -19,13 +19,18 @@ package net.lovexq.samplebidata.spark
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * DataFrameDemo
+  * DataFrame Demo
   *
   * @author LuPindong
   * @time 2019-04-08 21:43
   */
 object DataFrameDemo2 {
 
+  /**
+    * Creating Datasets
+    *
+    * @param args
+    */
   def main(args: Array[String]): Unit = {
     val appName = "DataFrameDemo Application"
 
