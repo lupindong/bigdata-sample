@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.lovexq.simplebigdata.mapreduce;
+package net.lovexq.samplebigdata.mapreduce;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
