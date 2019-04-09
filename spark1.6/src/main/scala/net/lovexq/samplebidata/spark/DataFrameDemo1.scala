@@ -24,7 +24,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * @author LuPindong
   * @time 2019-04-08 21:43
   */
-object DataFrameDemo {
+object DataFrameDemo1 {
   def main(args: Array[String]): Unit = {
     val appName = "DataFrameDemo Application"
 
