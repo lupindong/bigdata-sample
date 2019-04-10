@@ -73,6 +73,7 @@ import com.databricks.spark.avro._
 val ordersDF = sqlContext.read.avro("/user/cloudera/problem1/orders")
 
 val orderItemsDF = sqlContext.read.avro("/user/cloudera/problem1/order-items")
+
 ```
 
 4. Expected Intermediate Result:
@@ -94,14 +95,58 @@ joinDF.cache
 
 import org.apache.spark.sql.functions._
 
-# a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
+# 4.a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
 val dfResult = joinDF.groupBy(to_date(from_unixtime($"order_date"/1000)).alias("order_date_format"),$"order_status").agg(countDistinct($"order_id").alias("total_orders"), round(sum($"order_item_subtotal"),2).alias("total_amount")).orderBy(($"order_date_format").desc, ($"order_status").asc, ($"total_amount").desc, ($"total_orders").asc)
 
-# b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
+# 4.b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
 joinDF.registerTempTable("join_table")
 
 val sql = "select to_date(from_unixtime(order_date/1000)) as order_date_format, order_status, count(distinct order_id) as total_orders, cast(sum(order_item_subtotal) as decimal(10,2)) as total_amount from join_table group by order_date, order_status order by order_date_format desc, order_status asc, total_amount desc, total_orders asc"
 
 val sqlResult = sqlContext.sql(sql)
+
+# 4.c). By using combineByKey function on RDDS -- No need of formatting order_date or total_amount
+joinDF.printSchema()
+
+# def combineByKey[C](
+#       createCombiner: V => C,
+#       mergeValue: (C, V) => C,
+#       mergeCombiners: (C, C) => C,
+#       partitioner: Partitioner,
+#       mapSideCombine: Boolean = true,
+#       serializer: Serializer = null)
+      
+var combineResult = joinDF.map(x => (x(0), x(1), x(3), x(8))).
+combineByKey((x:(Long,String)) => (x._1, Set(x._2)),
+(x:(Long,Set[String]), y:(Long,String)) => (x._1 + y._1, x._2 + y._2),
+(x:(Long,Set[String]), y:(Long,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).collect().take(10).foreach(println)
+
+var combineResult = joinDF.
+map(x => ((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).
+combineByKey((x:(Float,String)) => (x._1, Set(x._2)),
+(x:(Float,Set[String]), y:(Float,String)) => (x._1 + y._1, x._2 + y._2),
+(x:(Float,Set[String]), y:(Float,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).
+map(x => (x._1._1, x._1._2, x._2._1, x._2._2.size)).
+toDF().
+orderBy(col("_1").desc,col("_2"),col("_3").desc,col("_4")).
+collect().take(10).foreach(println)
+
+var combineResult = joinDF.
+map(x => ((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).
+combineByKey((x:(Float,String)) => (x._1, Set(x._2)),
+(x:(Float,Set[String]), y:(Float,String)) => (x._1 + y._1, x._2 + y._2),
+(x:(Float,Set[String]), y:(Float,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).
+collect().take(10).foreach(println)
+
+var comByKeyResult = joinDF.
+map(x=> ((x(1).toString, x(3).toString), (x(8).toString.toFloat,x(0).toString))).
+combineByKey((x:(Float, String))=>(x._1,Set(x._2)),
+(x:(Float,Set[String]),y:(Float,String))=>(x._1 + y._1,x._2+y._2),
+(x:(Float,Set[String]),y:(Float,Set[String]))=>(x._1+y._1,x._2++y._2)).
+map(x=> (x._1._1,x._1._2,x._2._1,x._2._2.size)).
+toDF().
+orderBy(col("_1").desc,col("_2"),col("_3").desc,col("_4"));
+
+comByKeyResult.show();
 ```
 
