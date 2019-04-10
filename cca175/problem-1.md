@@ -4,7 +4,7 @@
 
 2. Using sqoop, import order_items  table into hdfs to folders **/user/cloudera/problem1/order-items**. Files should be loaded as avro file and use snappy compression
 
-3. Using Spark Scala load data at **/user/cloudera/problem1/orders** and **/user/cloudera/problem1/orders-items** items as *dataframes*. 
+3. Using Spark Scala load data at **/user/cloudera/problem1/orders** and **/user/cloudera/problem1/order-items** items as *dataframes*. 
 
 4. Expected Intermediate Result:
 
@@ -64,3 +64,36 @@ $ sqoop import \
 --compression-codec snappy \
 --as-avrodatafile;
 ```
+3. Using Spark Scala load data at **/user/cloudera/problem1/orders** and **/user/cloudera/problem1/order-items** items as *dataframes*. 
+```shell
+spark-shell
+
+import com.databricks.spark.avro._
+
+val ordersDF = sqlContext.read.avro("/user/cloudera/problem1/orders")
+
+val orderItemsDF = sqlContext.read.avro("/user/cloudera/problem1/order-items")
+```
+
+4. Expected Intermediate Result:
+
+    Order_Date , Order_status, total_orders, total_amount. In plain english, please find total orders and total amount per status per day. The result should be sorted by order date in descending, order status in ascending and total amount in descending and total orders in ascending. Aggregation should be done using below methods. However, sorting can be done using a dataframe or RDD. Perform aggregation in each of the following ways
+
+   - a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
+   - b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
+   - c). By using combineByKey function on RDDS -- No need of formatting order_date or total_amount
+
+```shell
+### 求每天各种状态的订单总数和订单金额
+### 先join表，再按时间、状态分组group之后对订单数和订单金额分别进行聚合agg(求和sum)，再根据要求排序
+
+# 4.0 
+val joinDF = ordersDF.join(orderItemsDF, ordersDF("order_id") === orderItemsDF("order_item_order_id"))
+
+joinDF.cache
+
+# 4.a
+val dfResult = joinDF.groupBy(to_date(from_unixtime($"order_date"/1000)),$"order_status").agg(sum($"order_item_quantity"), round(sum($"order_item_subtotal"),2))
+
+```
+
