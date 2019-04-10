@@ -1,4 +1,4 @@
-**[Problem 1:](<https://arun-teaches-u-tech.blogspot.com/p/cca-175-prep-problem-scenario-1.html>)**
+# **[Problem 1:](<https://arun-teaches-u-tech.blogspot.com/p/cca-175-prep-problem-scenario-1.html>)**
 
 1. Using sqoop, import orders table into hdfs to folders **/user/cloudera/problem1/orders**. File should be loaded as Avro File and use snappy compression
 
@@ -34,3 +34,33 @@
 
 8. create a mysql table named result and load data from **/user/cloudera/problem1/result4a-csv** to mysql table named result 
 
+# My Answer
+
+1. Using sqoop, import orders table into hdfs to folders **/user/cloudera/problem1/orders**. File should be loaded as Avro File and use snappy compression
+
+```shell
+$ sqoop import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username retail_dba \
+--password cloudera \
+--table orders \
+--target-dir "/user/cloudera/problem1/orders" \
+--delete-target-dir \
+--compress \
+--compression-codec snappy \
+--as-avrodatafile;
+```
+2. Using sqoop, import order_items  table into hdfs to folders **/user/cloudera/problem1/order-items**. Files should be loaded as avro file and use snappy compression
+
+```shell
+$ sqoop import \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username retail_dba \
+--password cloudera \
+--table order_items \
+--target-dir /user/cloudera/problem1/order-items \
+--delete-target-dir \
+--compress \
+--compression-codec snappy \
+--as-avrodatafile;
+```
