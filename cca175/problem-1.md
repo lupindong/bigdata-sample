@@ -40,7 +40,7 @@
 
 ```shell
 $ sqoop import \
---connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--connect "jdbc:mysql://server2:13306/retail_db" \
 --username retail_dba \
 --password cloudera \
 --table orders \
@@ -54,7 +54,7 @@ $ sqoop import \
 
 ```shell
 $ sqoop import \
---connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--connect "jdbc:mysql://server2:13306/retail_db" \
 --username retail_dba \
 --password cloudera \
 --table order_items \
@@ -77,7 +77,7 @@ val orderItemsDF = sqlContext.read.avro("/user/cloudera/problem1/order-items")
 
 4. Expected Intermediate Result:
 
-    Order_Date , Order_status, total_orders, total_amount. In plain english, please find total orders and total amount per status per day. The result should be sorted by order date in descending, order status in ascending and total amount in descending and total orders in ascending. Aggregation should be done using below methods. However, sorting can be done using a dataframe or RDD. Perform aggregation in each of the following ways
+    Order_Date , Order_status, total_orders, total_amount. In plain english, please find total orders and total amount per status per day. The result should be sorted by **order date in descending**, **order status in ascending** and **total amount in descending** and **total orders in ascending**. Aggregation should be done using below methods. However, sorting can be done using a dataframe or RDD. Perform aggregation in each of the following ways
 
    - a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
    - b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
@@ -92,8 +92,16 @@ val joinDF = ordersDF.join(orderItemsDF, ordersDF("order_id") === orderItemsDF("
 
 joinDF.cache
 
-# 4.a
-val dfResult = joinDF.groupBy(to_date(from_unixtime($"order_date"/1000)),$"order_status").agg(sum($"order_item_quantity"), round(sum($"order_item_subtotal"),2))
+import org.apache.spark.sql.functions._
 
+# a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
+val dfResult = joinDF.groupBy(to_date(from_unixtime($"order_date"/1000)).alias("order_date_format"),$"order_status").agg(countDistinct($"order_id").alias("total_orders"), round(sum($"order_item_subtotal"),2).alias("total_amount")).orderBy(($"order_date_format").desc, ($"order_status").asc, ($"total_amount").desc, ($"total_orders").asc)
+
+# b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
+joinDF.registerTempTable("join_table")
+
+val sql = "select to_date(from_unixtime(order_date/1000)) as order_date_format, order_status, count(distinct order_id) as total_orders, cast(sum(order_item_subtotal) as decimal(10,2)) as total_amount from join_table group by order_date, order_status order by order_date_format desc, order_status asc, total_amount desc, total_orders asc"
+
+val sqlResult = sqlContext.sql(sql)
 ```
 
