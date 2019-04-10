@@ -116,37 +116,6 @@ joinDF.printSchema()
 #       mapSideCombine: Boolean = true,
 #       serializer: Serializer = null)
       
-var combineResult = joinDF.map(x => (x(0), x(1), x(3), x(8))).
-combineByKey((x:(Long,String)) => (x._1, Set(x._2)),
-(x:(Long,Set[String]), y:(Long,String)) => (x._1 + y._1, x._2 + y._2),
-(x:(Long,Set[String]), y:(Long,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).collect().take(10).foreach(println)
-
-var combineResult = joinDF.
-map(x => ((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).
-combineByKey((x:(Float,String)) => (x._1, Set(x._2)),
-(x:(Float,Set[String]), y:(Float,String)) => (x._1 + y._1, x._2 + y._2),
-(x:(Float,Set[String]), y:(Float,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).
-map(x => (x._1._1, x._1._2, x._2._1, x._2._2.size)).
-toDF().
-orderBy(col("_1").desc,col("_2"),col("_3").desc,col("_4")).
-collect().take(10).foreach(println)
-
-var combineResult = joinDF.
-map(x => ((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).
-combineByKey((x:(Float,String)) => (x._1, Set(x._2)),
-(x:(Float,Set[String]), y:(Float,String)) => (x._1 + y._1, x._2 + y._2),
-(x:(Float,Set[String]), y:(Float,Set[String])) => (x._1 + y._1, x._2 ++ y._2)).
-collect().take(10).foreach(println)
-
-var comByKeyResult = joinDF.
-map(x=> ((x(1).toString, x(3).toString), (x(8).toString.toFloat,x(0).toString))).
-combineByKey((x:(Float, String))=>(x._1,Set(x._2)),
-(x:(Float,Set[String]),y:(Float,String))=>(x._1 + y._1,x._2+y._2),
-(x:(Float,Set[String]),y:(Float,Set[String]))=>(x._1+y._1,x._2++y._2)).
-map(x=> (x._1._1,x._1._2,x._2._1,x._2._2.size)).
-toDF().
-orderBy(col("_1").desc,col("_2"),col("_3").desc,col("_4"));
-
-comByKeyResult.show();
+# TODO
 ```
 
