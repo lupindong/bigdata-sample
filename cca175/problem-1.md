@@ -131,8 +131,6 @@ joinDF.printSchema()
 ##       partitioner: Partitioner,
 ##       mapSideCombine: Boolean = true,
 ##       serializer: Serializer = null)
-      
-# TODO
 
 val combineResult = joinDF.
 map(x=>((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).
@@ -145,24 +143,71 @@ orderBy($"_1".desc,$"_2".asc,$"_3".desc,$"_4".asc)
 
 combineResult.show()
 
-val combineResult = joinDF.map(x=>((x(1).toString, x(3).toString), (x(8).toString.toFloat, x(0).toString))).combineByKey((x:(Float, String))=>(x._1, Set(x._2)),(x:(Float, Set[String]), y:(Float, String))=>(x._1+y._1, x._2+y._2),(x:(Float, Set[String]), y:(Float, Set[String]))=>(x._1+y._1, x._2++y._2)).collect()
 
 ```
 
+5.  Store the result as parquet file into hdfs using gzip compression under folder
 
+   - /user/cloudera/problem1/result4a-gzip
+   - /user/cloudera/problem1/result4b-gzip
+   - /user/cloudera/problem1/result4c-gzip
 
+```shell
+sqlContext.setConf("spark.sql.parquet.compression.codec","gzip")
 
+dfResult.write.parquet("/user/cloudera/problem1/result4a-gzip")
 
+sqlResult.write.parquet("/user/cloudera/problem1/result4b-gzip")
 
+combineResult.write.parquet("/user/cloudera/problem1/result4c-gzip")
 
+```
 
+6.  Store the result as parquet file into hdfs using snappy compression under folder
 
+   - /user/cloudera/problem1/result4a-snappy
+   - /user/cloudera/problem1/result4b-snappy
+   - /user/cloudera/problem1/result4c-snappy
+```shell
+sqlContext.setConf("spark.parquet.compression.codec","snappy")
 
+dfResult.write.parquet("/user/cloudera/problem1/result4a-snappy")
 
+sqlResult.write.parquet("/user/cloudera/problem1/result4b-snappy")
 
+combineResult.write.parquet("/user/cloudera/problem1/result4c-snappy")
 
+```
+7. Store the result as CSV file into hdfs using No compression under folder
 
+   - /user/cloudera/problem1/result4a-csv
+   - /user/cloudera/problem1/result4b-csv
+   - /user/cloudera/problem1/result4c-csv
+```shell
 
+dfResult.map(x=>x(0)+","+x(1)+","+x(2)+","+x(3)).saveAsTextFile("/user/cloudera/problem1/result4a-csv")
+
+sqlResult.map(x=>x(0)+","+x(1)+","+x(2)+","+x(3)).saveAsTextFile("/user/cloudera/problem1/result4b-csv")
+
+combineResult.map(x=>x(0)+","+x(1)+","+x(2)+","+x(3)).saveAsTextFile("/user/cloudera/problem1/result4c-csv")
+```
+
+8. create a mysql table named result and load data from **/user/cloudera/problem1/result4a-csv** to mysql table named result 
+```shell
+$ mysql -uretail_dba -pcloudera
+
+mysql> use retail_db;
+
+mysql> create table if not exists result(order_date varchar(16), order_status varchar(64), total_amount decimal(10,2), total_orders bigint, primary key(order_date, order_status));
+
+$ sqoop-export \
+--connect "jdbc:mysql://server2:13306/retail_db" \
+--username retail_dba \
+--password cloudera \
+--table result \
+--columns "order_date, order_status, total_amount, total_orders" \
+--export-dir "/user/cloudera/problem1/result4a-csv";
+```
 
 
 
