@@ -79,3 +79,34 @@ hdfs dfs -chmod 644 Employee/MergedEmployee.txt
 
 11.复制hdfs文件夹到本地  
 hdfs dfs -get Employee Employee_hdfs
+
+
+
+# solution3
+
+1.导入category_id=22的数据到categories_subset文件夹
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset \
+--where='category_id'=22
+
+2.查看输出结果
+hdfs dfs -cat categories_subset/categories/part*
+
+3.导入category_id>22的数据到categories_subset_2文件夹
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset_2 \
+--where='category_id'>22
+
+4.查看输出结果
+hdfs dfs -cat categories_subset_2/categories/part*
+
