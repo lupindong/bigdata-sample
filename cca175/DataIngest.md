@@ -84,29 +84,88 @@ hdfs dfs -get Employee Employee_hdfs
 
 # solution3
 
-1.导入category_id=22的数据到categories_subset文件夹
-
+1.导入category_id=22的数据到categories_subset文件夹  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --table=categories \
 --warehouse-dir=categories_subset \
---where='category_id'=22
+--where="category_id=22"  
 
-2.查看输出结果
-hdfs dfs -cat categories_subset/categories/part*
+hdfs dfs -cat categories_subset/categories/part*  
 
-3.导入category_id>22的数据到categories_subset_2文件夹
-
+2.导入category_id>22的数据到categories_subset_2文件夹  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --table=categories \
 --warehouse-dir=categories_subset_2 \
---where='category_id'>22
+--where="category_id>22"  
 
-4.查看输出结果
-hdfs dfs -cat categories_subset_2/categories/part*
+hdfs dfs -cat categories_subset_2/categories/part*  
 
+3.导入category_id 从1到22的数据到categories_subset_3文件夹  
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset_3 \
+--where="category_id between 1 and 22"  
+
+hdfs dfs -cat categories_subset_3/categories/part*  
+
+4.导入category_id 从1到22的数据到categories_subset_6文件夹 ，分隔符使用"|"  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset_6 \
+--where="category_id between 1 and 22" \
+--fields-terminated-by="|"  
+
+hdfs dfs -cat categories_subset_6/categories/part*  
+
+5.导入category_id 从1到22的数据到categories_subset_6文件夹 ，并限定只有category_name, category_id两列，分隔符使用"|"  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset_col \
+--where="category_id between 1 and 22" \
+--fields-terminated-by="|" \
+--columns="category_name, category_id"  
+
+6.使用下列sql添加null值记录进表  
+alter table categories modify category_department_id int(11);
+insert into categories values(60,null,'TESTING');
+select * from categories;
+
+
+7.导入category_id 从1到61的数据到categories_subset_17文件夹 ，分隔符使用"|"，并对字符串和非字符串的null值进行转码  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--warehouse-dir=categories_subset_17 \
+--where="category_id between 1 and 61" \
+--fields-terminated-by="|" \
+--null-string="N" \
+--null-non-string="N"  
+
+hdfs dfs -cat categories_subset_17/categories/part-*  
+
+8.导入全部表结构到categories_subset_all_tables文件夹  
+sqoop import-all-tables \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--warehouse-dir=categories_subset_all_tables   
+
+hdfs dfs -ls categories_subset_all_tables/*  
