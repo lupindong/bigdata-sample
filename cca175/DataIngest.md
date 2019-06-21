@@ -142,9 +142,9 @@ sqoop import \
 --columns="category_name, category_id"  
 
 6.使用下列sql添加null值记录进表  
-alter table categories modify category_department_id int(11);
-insert into categories values(60,null,'TESTING');
-select * from categories;
+alter table categories modify category_department_id int(11);  
+insert into categories values(60,null,'TESTING');  
+select * from categories;   
 
 
 7.导入category_id 从1到61的数据到categories_subset_17文件夹 ，分隔符使用"|"，并对字符串和非字符串的null值进行转码  
@@ -169,3 +169,21 @@ sqoop import-all-tables \
 --warehouse-dir=categories_subset_all_tables   
 
 hdfs dfs -ls categories_subset_all_tables/*  
+
+
+# solution4
+
+**将表categories（子集数据）导入到hive托管表，其中category_id介于1和22之**
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--where="category_id between 1 and 22" \
+--hive-import  
+
+hive   
+show tables;  
+select * from tables;  
+
