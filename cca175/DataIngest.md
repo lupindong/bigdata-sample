@@ -173,7 +173,7 @@ hdfs dfs -ls categories_subset_all_tables/*
 
 # solution4
 
-**将表categories的子集数据导入到hive托管表，其中category_id介于1和22之**
+**1.将表categories的子集数据导入到hive托管表，其中category_id介于1和22之**
 
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
@@ -211,10 +211,51 @@ sqoop import-all-tables \
 --as-avrodatafile \
 --warehouse-dir=/user/hive/warehouse/retail_cca174.db
 
+hdfs dfs -ls /user/hive/warehouse/retail_cca174.db/*  
+
 **4.将department表作为text文件导入到/user/cloudera/departments**  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --table=departments \
---target-dir=/user/cloudera/departments \
+--target-dir=/user/cloudera/departments  
+
+hdfs dfs -cat /user/cloudera/departments/part-*   
+
+# solution 6
+**1.导入整个数据库，使其可以用作hive表，必须在default schema中创建。还要确保每个表文件都在3个文件中分区。将所有Java文件存储在名为java_output的目录中，以进一步评估**  
+
+检查  
+hive  
+show tables;  
+drop table xxx;  
+show tables;  
+hdfs dfs -ls /user/hive/warehouse  
+
+导入  
+sqoop import-all-tables \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--hive-import \
+--hive-overwrite \
+--compress \
+--compression-codec=org.apache.hadoop.io.compress.SnappyCodec \
+--outdir=java_output \
+--m=3 
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--hive-import \
+--compress \
+--compression-codec=org.apache.hadoop.io.compress.SnappyCodec \
+--outdir=java_output \
+--m=3 
+
+验证  
+hive  
+show tables;  
+select count(1) from categories;
