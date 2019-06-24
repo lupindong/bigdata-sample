@@ -173,7 +173,7 @@ hdfs dfs -ls categories_subset_all_tables/*
 
 # solution4
 
-**将表categories（子集数据）导入到hive托管表，其中category_id介于1和22之**
+**将表categories的子集数据导入到hive托管表，其中category_id介于1和22之**
 
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
@@ -183,7 +183,38 @@ sqoop import \
 --where="category_id between 1 and 22" \
 --hive-import  
 
-hive   
+hive  
+
 show tables;  
+
 select * from tables;  
 
+# solution5
+**1.使用sqoop命令列出retail_db的所有表**  
+sqoop list-tables \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera
+
+**2.编写简单的sqoop eval命令以检查您是否具有读取数据库表的权限**  
+sqoop eval \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--query="select count(1) from departments"
+
+**3.将所有表作为avro文件导入到/user/hive/warehouse/retail_cca174.db**  
+sqoop import-all-tables \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--as-avrodatafile \
+--warehouse-dir=/user/hive/warehouse/retail_cca174.db
+
+**4.将department表作为text文件导入到/user/cloudera/departments**  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=/user/cloudera/departments \
