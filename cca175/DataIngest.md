@@ -1,48 +1,54 @@
 # solution1 
+## 问题
+**1.连接mysql db，并检查表内容**  
+**2.将"retail_db.categories"表复制到hdfs，而不指定目录名**  
+**3.将"retail_db.categories"表复制到hdfs，存储在目录“categories_target”中**    
+**4.将"retail_db.categories"表复制到hdfs，存储在仓库目录“categories_warehouse”中**  
 
-1.连接数据库  
-mysql --user=retail_dba --password=cloudera retail_db
 
-2.查看数据表  
-show tables;
+## 指令
 
-3.查看categories表的记录数  
-select count(1) from categories;
+| 指令                | 作用  |
+| ------------------- | --------------------------------------- |
+| --target-dir        | HDFS destination dir                    |
+| --warehouse-dir     | HDFS parent for table destination       |
 
-4.列举hdfs文件夹  
-hdfs dfs -ls;
+## 脚本
+**setp1: **连接mysql db，并检查表内容  
+mysql --user=retail_dba --password=cloudera retail_db  
 
-5.不指定文件夹导入  
+show tables;  
+
+select count(1) from categories;  
+
+**setp2: **将"retail_db.categories"表复制到hdfs，而不指定目录名  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
---table=categories
+--table=categories  
 
-6.查看导入记录  
-hdfs dfs -cat categories/part-m*
+hdfs dfs -cat categories/part-m*  
 
-7.指定文件夹导入  
+**setp3: **将"retail_db.categories"表复制到hdfs，存储在目录“categories_target”中  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --table=categories \
---target-dir=categories_target
+--target-dir=categories_target  
 
-8.查看导入记录  
-hdfs dfs -cat categories_target/part-m*
+hdfs dfs -cat categories_target/part-m*  
 
-9.指定父级文件夹导入  
+**setp4:**将"retail_db.categories"表复制到hdfs，存储在仓库目录“categories_warehouse”中  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --table=categories \
---warehouse-dir=categories_warehouse
+--warehouse-dir=categories_warehouse  
 
-10.检查导入记录  
-hdfs dfs -cat categories_warehouse/categories/part-m*
+hdfs dfs -cat categories_warehouse/categories/part-m*  
 
 # solution2 
 
@@ -189,21 +195,29 @@ show tables;
 
 select * from tables;  
 
-# solution5
+# solution 5
+## 问题
 **1.使用sqoop命令列出retail_db的所有表**  
+**2.编写简单的sqoop eval命令以检查您是否具有读取数据库表的权限**  
+**3.将所有表作为avro文件导入到/user/hive/warehouse/retail_cca174.db**  
+**4.将department表作为text文件导入到/user/cloudera/departments**  
+## 指令
+
+## 脚本
+**setp 1:**使用sqoop命令列出retail_db的所有表  
 sqoop list-tables \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera
 
-**2.编写简单的sqoop eval命令以检查您是否具有读取数据库表的权限**  
+**setp 2:**编写简单的sqoop eval命令以检查您是否具有读取数据库表的权限  
 sqoop eval \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --query="select count(1) from departments"
 
-**3.将所有表作为avro文件导入到/user/hive/warehouse/retail_cca174.db**  
+**setp 3:**将所有表作为avro文件导入到/user/hive/warehouse/retail_cca174.db  
 sqoop import-all-tables \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
@@ -213,7 +227,7 @@ sqoop import-all-tables \
 
 hdfs dfs -ls /user/hive/warehouse/retail_cca174.db/*  
 
-**4.将department表作为text文件导入到/user/cloudera/departments**  
+**setp 4:**将department表作为text文件导入到/user/cloudera/departments  
 sqoop import \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
@@ -224,38 +238,52 @@ sqoop import \
 hdfs dfs -cat /user/cloudera/departments/part-*   
 
 # solution 6
-**1.导入整个数据库，使其可以用作hive表，必须在default schema中创建。还要确保每个表文件都在3个文件中分区。将所有Java文件存储在名为java_output的目录中，以进一步评估**  
+## 问题
+**1.导入整个数据库，使其可以用作hive表，必须在default schema中创建。**
 
-检查  
+**2.还要确保每个表文件都在3个文件中分区。**
+
+**3.将所有Java文件存储在名为java_output的目录中，以进一步评估**  
+
+## 指令  
+
+| 指令                | 作用                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| --hive-import       | Import tables into Hive                                      |
+| --hive-overwrite    | Overwrite existing data in the Hive table                    |
+| --create-hive-table | If set, then the job will fail if the target hive.table exits. By default this property is false. |
+| --compress          | Enable compression                                           |
+| --compression-codec | Use Hadoop codec (default gzip)                              |
+| --outdir            | Output directory for generated code                          |
+
+## 脚本  
+**setp 1:**删除所有的hive表，并检查目录  
+
 hive  
 show tables;  
 drop table xxx;  
 show tables;  
+
 hdfs dfs -ls /user/hive/warehouse  
 
-导入  
+**setp 2:**导入数据库中所有表  
 sqoop import-all-tables \
 --connect=jdbc:mysql://quickstart:3306/retail_db \
 --username=retail_dba \
 --password=cloudera \
 --hive-import \
 --hive-overwrite \
+--create-hive-table \
 --compress \
 --compression-codec=org.apache.hadoop.io.compress.SnappyCodec \
 --outdir=java_output \
---m=3 
+--m=3   
 
-sqoop import \
---connect=jdbc:mysql://quickstart:3306/retail_db \
---username=retail_dba \
---password=cloudera \
---hive-import \
---compress \
---compression-codec=org.apache.hadoop.io.compress.SnappyCodec \
---outdir=java_output \
---m=3 
-
-验证  
+**setp 3:**验证操作结果  
 hive  
 show tables;  
-select count(1) from categories;
+select count(1) from categories;   
+
+hdfs dfs -ls /user/hive/warehouse/*;
+
+ll java_output
