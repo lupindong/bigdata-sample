@@ -10,12 +10,12 @@
 
 | 指令                | 作用  |
 | ------------------- | --------------------------------------- |
-| --target-dir        | HDFS destination dir                    |
-| --warehouse-dir     | HDFS parent for table destination       |
+| --target-dir <dir>  | HDFS destination dir                    |
+| --warehouse-dir <dir> | HDFS parent for table destination       |
 
 ## 脚本
 **setp1: **连接mysql db，并检查表内容  
-mysql --user=retail_dba --password=cloudera retail_db  
+mysql -uretail_dba -pcloudera  retail_db;    
 
 show tables;  
 
@@ -116,10 +116,10 @@ hdfs dfs -get Employee Employee_hdfs
 
 | 指令                | 作用  |
 | ------------------- | --------------------------------------- |
-| --where | WHERE clause to use during import |
-| --fields-terminated-by | Sets the field separator character |
-| --null-string | The string to be written for a null value for string columns |
-| --null-non-string | The string to be written for a null value for non-string columns |
+| --where <where clause> | WHERE clause to use during import |
+| --fields-terminated-by <char> | Sets the field separator character |
+| --null-string <null-string> | The string to be written for a null value for string columns |
+| --null-non-string <null-string> | The string to be written for a null value for non-string columns |
 ## 脚本
 
 **setp1: ** 导入category_id=22的数据到categories_subset目录  
@@ -236,13 +236,11 @@ select * from tables;
 **4.将department表作为text文件导入到/user/cloudera/departments**  
 ## 指令
 
-| 指令                | 作用                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| eval                | Overwrite existing data in the Hive table                    |
-| --query             | If set, then the job will fail if the target hive.table exits. By default this property is false. |
-| --compress          | Enable compression                                           |
-| --compression-codec | Use Hadoop codec (default gzip)                              |
-| --outdir            | Output directory for generated code                          |
+| 指令                | 作用                                             |
+| ------------------- | ------------------------------------------------ |
+| eval                | Evaluate a SQL statement and display the results |
+| --query <statement> | Import the results of *statement*                |
+| --as-avrodatafile   | Imports data to Avro Data Files                  |
 ## 脚本
 **setp 1: **使用sqoop命令列出retail_db的所有表  
 sqoop list-tables \
@@ -287,13 +285,13 @@ hdfs dfs -cat /user/cloudera/departments/part-*
 
 ## 指令  
 
-| 指令                | 作用                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| --hive-overwrite    | Overwrite existing data in the Hive table                    |
-| --create-hive-table | If set, then the job will fail if the target hive.table exits. By default this property is false. |
-| --compress          | Enable compression                                           |
-| --compression-codec | Use Hadoop codec (default gzip)                              |
-| --outdir            | Output directory for generated code                          |
+| 指令                    | 作用                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| --hive-overwrite        | Overwrite existing data in the Hive table                    |
+| --create-hive-table     | If set, then the job will fail if the target hive.table exits. By default this property is false. |
+| --compress              | Enable compression                                           |
+| --compression-codec <c> | Use Hadoop codec (default gzip)                              |
+| --outdir <dir>          | Output directory for generated code                          |
 
 ## 脚本  
 **setp 1: **删除所有的hive表，并检查目录  
@@ -326,3 +324,131 @@ select count(1) from categories;
 hdfs dfs -ls /user/hive/warehouse/*;
 
 ll java_output
+
+# solution 7
+## 问题
+**1.使用自定义boundary query导入部门表，该查询可导入1到25之间的部门**
+
+**2.还要确保每个表文件都在2个文件中分区**
+
+**3.还要确保只导入了两列表单表，分别是department_id、department_name**  
+
+## 指令  
+
+| 指令                         | 作用                                      |
+| ---------------------------- | ----------------------------------------- |
+| --boundary-query <statement> | Boundary query to use for creating splits |
+
+
+## 脚本  
+**setp 1: **  检查并删除历史记录
+hdfs dfs -ls  
+
+hdfs dfs -rm -R xxx  
+
+**setp 2: **  使用自定义boundary query导入部门表，该查询可导入1到25之间的部门
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--columns="department_id, department_name" \
+--boundary-query="select 1, 25  from departments"  \
+--m=2  \
+--target-dir=/user/cloudera/departments  
+
+hdfs dfs -ls /user/cloudera/departments   
+
+hdfs dfs -cat /user/cloudera/departments/part-*   
+
+
+# solution 8
+## 问题
+**1.导入order表和order_items表连接的连接结果（orders.order_id = order_items.order_item_order_id）**
+
+**2.还要确保每个表文件都在2个文件中分区**
+
+**3.还要确保使用order_id列作为sqoop的边界条件**  
+
+## 指令  
+
+| 指令               | 作用                                      |
+| ------------------ | ----------------------------------------- |
+| --split-by <column-name> |Column of the table used to split work units. Cannot be used with `--autoreset-to-one-mapper` option. |
+
+## 脚本  
+**setp 1: **  检查并删除历史记录
+hdfs dfs -ls  
+
+hdfs dfs -rm -R xxx  
+
+**setp 2: **  查询表结构，并查看sql执行计划
+mysql -uretail_dba -pcloudera  retail_db;  
+
+desc orders;   
+
+desc order_items;  
+
+explain select * from orders left join  order_items on orders.order_id = order_items.order_item_order_id;
+
+alter table `order_items` add index `idx_oi_orderitemorderid`(`order_item_order_id`) using btree;
+
+**setp 3: **  使用自定义boundary query导入联合查询结果
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--query="select * from orders left join  order_items on orders.order_id = order_items.order_item_order_id where \$CONDITIONS" \
+--split-by=order_id \
+--m=2 \
+--target-dir=/user/cloudera/orders_join  
+
+hdfs dfs -ls /user/cloudera/orders_join  
+
+
+# solution 9
+## 问题
+**1.导入部门表到指定目录**  
+**2.再次导入部门表到相同的目录（但是目录已经存在，因此它不应该覆盖，并附加结果）**  
+**3.还要确保结果字段以“|”结尾 和以“\ n”结尾的行**  
+
+## 指令  
+
+| 指令               | 作用                                      |
+| ------------------ | ----------------------------------------- |
+| --lines-terminated-by <char> |Sets the end-of-line character |
+| --append |Append data to an existing dataset in HDFS |
+
+## 脚本  
+**setp 1: **  检查并删除历史记录  
+hdfs dfs -ls  
+
+hdfs dfs -rm -R xxx  
+
+**setp 2: **  首次导入部门表到指定目录  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=/user/cloudera/departments  \
+--fields-terminated-by="|" \
+--lines-terminated-by="\n" \
+--m=1
+
+hdfs dfs -ls /user/cloudera/departments   
+
+**setp 3: **  第二次导入部门表到指定目录  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=/user/cloudera/departments  \
+--fields-terminated-by="|" \
+--lines-terminated-by="\n" \
+--append \
+--m=1
+
+hdfs dfs -ls /user/cloudera/departments   
+
