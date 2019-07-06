@@ -452,3 +452,130 @@ sqoop import \
 
 hdfs dfs -ls /user/cloudera/departments   
 
+
+
+# solution 10
+## 问题
+**1.创建一个名为cloudera的hive数据库并在其中创建一个名为departments的表，其中包含以下字段：department_id int, department_name string**  
+位置应该是：hdfs://quickstart.cloudera:8020/user/hive/warehouse/cloudera.db/departments  
+**2.请导入数据到上面创建的表，从retail_db.departments导入到hive表cloudera.departments中**  
+**3.请导入数据到不存在的表，这意味着在导入的同时创建名为cloudera.departments_new的hive表**  
+
+## 指令  
+
+| 指令               | 作用                                      |
+| ------------------ | ----------------------------------------- |
+| --hive-home <dir> |Override `$HIVE_HOME` |
+
+## 脚本  
+
+**setp 1: **  检查并删除历史记录
+hdfs dfs -ls  
+
+hdfs dfs -rm -R xxx  
+
+**setp 2: **  创建一个名为cloudera的hive数据库并在其中创建一个名为departments的表，其中包含以下字段：department_id int, department_name string  
+hive  
+
+create database cloudera;  
+
+use cloudera; 
+
+show tables;  
+
+create table departments(department_id int, department_name string);  
+
+show tables;  
+
+desc departments;  
+
+**setp 3: **  请导入数据到上面创建的表，从retail_db.departments导入到hive表cloudera.departments中  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--hive-home=/user/hive/warehouse \
+--hive-import \
+--hive-overwrite \
+--hive-table=cloudera.departments  
+
+hive  
+
+use cloudera;  
+
+show tables;  
+
+desc departments;;  
+
+select * from departments;
+
+**setp 4: **  请导入数据到不存在的表，这意味着在导入的同时创建名为cloudera.departments_new的hive表  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--hive-home=/user/hive/warehouse \
+--hive-import \
+--hive-overwrite \
+--hive-table=cloudera.departments_new  \
+--create-hive-table 
+
+hive  
+
+use cloudera;  
+
+show tables;  
+
+desc departments;;  
+
+select * from departments;  
+
+
+# solution 11
+## 问题
+**1.在名为departments的目录中导入departments表**    
+**2.导入完成后，请在departments mysql表中插入以下5条记录**   
+insert into departments values(10, "Physics");
+insert into departments values(11, "Chemistry");
+insert into departments values(12, "Maths");
+insert into departments values(13, "Sciences");
+insert into departments values(14, "Engineering");
+
+**3.现在只导入新插入的记录，并附加到existring目录，该目录是在第一步中创建的**    
+
+## 指令  
+
+| 指令               | 作用                                      |
+| ------------------ | ----------------------------------------- |
+| --hive-home <dir> |Override `$HIVE_HOME` |
+
+## 脚本  
+
+**setp 1: **  检查并删除历史记录 
+hdfs dfs -ls /user/cloudera/departments  
+
+hdfs dfs -rm -R /user/cloudera/departments  
+
+**setp 2: **  在名为departments的目录中导入departments表 
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=/user/cloudera/departments \
+--m=1 
+
+hdfs dfs -ls /user/cloudera/departments  
+
+hdfs dfs -cat /user/cloudera/departments/part-* 
+
+**setp 3: ** 导入完成后，请在departments mysql表中插入以下5条记录 
+mysql -uretail_dba -pcloudera retail_db;
+
+insert into departments values(10, "Physics");
+insert into departments values(11, "Chemistry");
+insert into departments values(12, "Maths");
+insert into departments values(13, "Sciences");
+insert into departments values(14, "Engineering");
