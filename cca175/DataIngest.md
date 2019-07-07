@@ -8,7 +8,7 @@
 
 ## 指令
 
-| 指令                | 作用  |
+| 指令                | 描述  |
 | ------------------- | --------------------------------------- |
 | --target-dir <dir>  | HDFS destination dir                    |
 | --warehouse-dir <dir> | HDFS parent for table destination       |
@@ -61,7 +61,7 @@ hdfs dfs -cat categories_warehouse/categories/part-m*
 
 ## 指令
 
-| 指令                | 作用  |
+| 指令                | 描述  |
 | ------------------- | --------------------------------------- |
 | -touchz        | Creates a file of zero length at <path> with current time as the timestamp of that <path> |
 | -getmerge | Get all the files in the directories that match the source file pattern and merge and sort them to only one file on local fs. <src> is kept |
@@ -114,7 +114,7 @@ hdfs dfs -get Employee Employee_hdfs
 
 ## 指令
 
-| 指令                | 作用  |
+| 指令                | 描述  |
 | ------------------- | --------------------------------------- |
 | --where <where clause> | WHERE clause to use during import |
 | --fields-terminated-by <char> | Sets the field separator character |
@@ -211,7 +211,7 @@ hdfs dfs -ls categories_subset_all_tables/*
 ## 问题
 **1.将表categories的子集数据导入到hive托管表，其中category_id介于1和22之**
 ## 指令
-| 指令                | 作用                                                         |
+| 指令                | 描述                                                         |
 | ------------------- | ------------------------------------------------------------ |
 | --hive-import       | Import tables into Hive                                      |
 ## 脚本
@@ -236,7 +236,7 @@ select * from tables;
 **4.将department表作为text文件导入到/user/cloudera/departments**  
 ## 指令
 
-| 指令                | 作用                                             |
+| 指令                | 描述                                             |
 | ------------------- | ------------------------------------------------ |
 | eval                | Evaluate a SQL statement and display the results |
 | --query <statement> | Import the results of *statement*                |
@@ -285,7 +285,7 @@ hdfs dfs -cat /user/cloudera/departments/part-*
 
 ## 指令  
 
-| 指令                    | 作用                                                         |
+| 指令                    | 描述                                                         |
 | ----------------------- | ------------------------------------------------------------ |
 | --hive-overwrite        | Overwrite existing data in the Hive table                    |
 | --create-hive-table     | If set, then the job will fail if the target hive.table exits. By default this property is false. |
@@ -335,7 +335,7 @@ ll java_output
 
 ## 指令  
 
-| 指令                         | 作用                                      |
+| 指令                         | 描述                                      |
 | ---------------------------- | ----------------------------------------- |
 | --boundary-query <statement> | Boundary query to use for creating splits |
 
@@ -372,7 +372,7 @@ hdfs dfs -cat /user/cloudera/departments/part-*
 
 ## 指令  
 
-| 指令               | 作用                                      |
+| 指令               | 描述                                      |
 | ------------------ | ----------------------------------------- |
 | --split-by <column-name> |Column of the table used to split work units. Cannot be used with `--autoreset-to-one-mapper` option. |
 
@@ -414,7 +414,7 @@ hdfs dfs -ls /user/cloudera/orders_join
 
 ## 指令  
 
-| 指令               | 作用                                      |
+| 指令               | 描述                                      |
 | ------------------ | ----------------------------------------- |
 | --lines-terminated-by <char> |Sets the end-of-line character |
 | --append |Append data to an existing dataset in HDFS |
@@ -463,7 +463,7 @@ hdfs dfs -ls /user/cloudera/departments
 
 ## 指令  
 
-| 指令               | 作用                                      |
+| 指令               | 描述                                      |
 | ------------------ | ----------------------------------------- |
 | --hive-home <dir> |Override `$HIVE_HOME` |
 
@@ -543,14 +543,15 @@ insert into departments values(12, "Maths");
 insert into departments values(13, "Sciences");
 insert into departments values(14, "Engineering");
 
-**3.现在只导入新插入的记录，并附加到existring目录，该目录是在第一步中创建的**    
+**3.现在只导入新插入的记录，并附加到已存在的目录，该目录是在第一步中创建的**    
 
 ## 指令  
 
-| 指令               | 作用                                      |
+| 指令               | 描述                                      |
 | ------------------ | ----------------------------------------- |
-| --hive-home <dir> |Override `$HIVE_HOME` |
-
+| --check-column (col) |Specifies the column to be examined when determining which rows to import |
+| --incremental (mode) |Specifies how Sqoop determines which rows are new (eg. `append` and `lastmodified`) |
+|--last-value (value) |Specifies the maximum value of the check column from the previous import |
 ## 脚本  
 
 **setp 1: **  检查并删除历史记录 
@@ -564,8 +565,7 @@ sqoop import \
 --username=retail_dba \
 --password=cloudera \
 --table=departments \
---target-dir=/user/cloudera/departments \
---m=1 
+--target-dir=/user/cloudera/departments 
 
 hdfs dfs -ls /user/cloudera/departments  
 
@@ -579,3 +579,91 @@ insert into departments values(11, "Chemistry");
 insert into departments values(12, "Maths");
 insert into departments values(13, "Sciences");
 insert into departments values(14, "Engineering");
+
+select * from departments; 
+
+**setp 4: **  现在只导入新插入的记录，并附加到已存在的目录，该目录是在第一步中创建的  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=/user/cloudera/departments \
+--append \
+--check-column="department_id" \
+--incremental=append \
+--last-value=7 
+
+hdfs dfs -ls /user/cloudera/departments  
+
+hdfs dfs -cat /user/cloudera/departments/part-* 
+
+
+# solution 12
+## 问题
+**1.使用以下定义在retail_db中创建一个表**  
+create table departments_new(department_id int(11), department_name varchar(45), created_date timestamp default now());
+**2.现在将departments表中的记录插入departments_new**  
+**3.现在将departments_new表中的数据导入到hdfs**  
+**4.在departments_new表中插入以下5条记录**  
+insert into departments_new values(110, "Vivil",null);
+insert into departments_new values(111, "Mechanical",null);
+insert into departments_new values(112, "Automobile",null);
+insert into departments_new values(113, "Pharma",null);
+insert into departments_new values(114, "Social Engineering",null);
+**5.现在根据create_date列执行增量导入**  
+
+## 指令  
+
+
+## 脚本  
+
+**setp 1: **  检查并删除历史记录 
+hdfs dfs -ls /user/cloudera/departments_new  
+
+mysql -uretail_dba -pcloudera retail_db; 
+
+show tables; 
+
+**setp 2: ** 使用以下定义在retail_db中创建一个表 
+create table departments_new(department_id int(11), department_name varchar(45), created_date timestamp default now());
+
+**setp 3: ** 现在将departments表中的记录插入departments_new  
+insert into departments_new select a.*, null from departments a;  
+
+**setp 4: ** 现在将departments_new表中的数据导入到hdfs  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments_new \
+--target-dir=/user/cloudera/departments_new \
+--split-by=department_id  
+
+hdfs dfs -ls /user/cloudera/departments_new  
+
+hdfs dfs -cat /user/cloudera/departments_new/part-*  
+
+**setp 5: ** 在departments_new表中插入以下5条记录  
+insert into departments_new values(110, "Vivil",null);
+insert into departments_new values(111, "Mechanical",null);
+insert into departments_new values(112, "Automobile",null);
+insert into departments_new values(113, "Pharma",null);
+insert into departments_new values(114, "Social Engineering",null);
+
+**setp 6: ** 现在根据create_date列执行增量导入  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments_new \
+--target-dir=/user/cloudera/departments_new \
+--split-by=department_id \
+--append \
+--check-column=created_date \
+--incremental=lastmodified \
+--last-value="2019-07-07 07:56:08" 
+
+hdfs dfs -ls /user/cloudera/departments_new  
+
+hdfs dfs -cat /user/cloudera/departments_new/part-*  
