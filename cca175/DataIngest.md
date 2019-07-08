@@ -601,11 +601,11 @@ hdfs dfs -cat /user/cloudera/departments/part-*
 
 # solution 12
 ## 问题
-**1.使用以下定义在retail_db中创建一个表**  
+**1.使用以下定义在retail_db中创建一个表:**  
 create table departments_new(department_id int(11), department_name varchar(45), created_date timestamp default now());
 **2.现在将departments表中的记录插入departments_new**  
 **3.现在将departments_new表中的数据导入到hdfs**  
-**4.在departments_new表中插入以下5条记录**  
+**4.在departments_new表中插入以下5条记录:**  
 insert into departments_new values(110, "Vivil",null);
 insert into departments_new values(111, "Mechanical",null);
 insert into departments_new values(112, "Automobile",null);
@@ -667,3 +667,160 @@ sqoop import \
 hdfs dfs -ls /user/cloudera/departments_new  
 
 hdfs dfs -cat /user/cloudera/departments_new/part-*  
+
+
+# solution 13
+## 问题
+**1.使用以下定义在retail_db中创建一个表:**  
+create table departments_export(department_id int(11), department_name varchar(45), created_date timestamp default now());
+**2.现在将以下目录中的数据导入departments_export表:**  
+/user/cloudera/departments_new  
+
+## 指令  
+
+| 指令               | 描述                                      |
+| ------------------ | ----------------------------------------- |
+|--export-dir <dir>|HDFS source path for the export |
+| --batch|Use batch mode for underlying statement execution|
+
+## 脚本  
+
+**setp 1: **  检查并删除历史记录  
+mysql -uretail_dba -pcloudera retail_db; 
+
+show tables; 
+
+**setp 2: ** 使用以下定义在retail_db中创建一个表 
+create table departments_export(department_id int(11), department_name varchar(45), created_date timestamp default now()); 
+
+select * from departments_export; 
+
+**setp 3: ** 现在将以下目录中的数据导入departments_export表
+sqoop export \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments_export \
+--export-dir=/user/cloudera/departments_new \
+--batch 
+
+mysql -uretail_dba -pcloudera retail_db; 
+
+show tables; 
+
+select * from departments_export; 
+
+
+# solution 14
+## 问题
+**1.在本地文件系统中使用以下内容来创建名为updated_departments.csv的csv文件**  
+2,fiteness
+3,footwear
+12,fathematics
+13,fcience
+14,engineering
+1000,management
+**2.将此csv文件上载到hdfs文件系统**  
+**3.现在将此数据从hdfs导出到mysql retail_db.departments表。 在上传期间，确保只更新现有部门，并且【需要】插入新部门**  
+**4.现在使用以下内容更新updated_departments.csv文件**  
+2,Fiteness
+3,Footwear
+12,Fathematics
+13,Fcience
+14,Engineering
+1000,Management
+2000,Quality Check
+**5.现在将此文件上传到hdfs**  
+**6.现在将此数据从hdfs导出到mysql retail_db.departments表。 在上传期间，确保只更新现有部门，并且【不需要】插入新部门**  
+
+## 指令  
+
+| 指令               | 描述                                      |
+| ------------------ | ----------------------------------------- |
+|--update-key <col-name>|Anchor column to use for updates. Use a comma separated list of columns if there are more than one column |
+| --update-mode <mode>|Specify how updates are performed when new rows are found with non-matching keys in database(eg. `updateonly` (default) and `allowinsert`)|
+
+## 脚本  
+
+**setp 1: **  检查并删除历史记录  
+ls  update_departments.csv 
+
+hdfs dfs -ls departments_csv 
+
+mysql -uretail_dba -pcloudera retail_db; 
+
+select * from departments; 
+
+**setp 2: **  在本地文件系统中使用以下内容来创建名为updated_departments.csv的csv文件  
+vim updated_departments.csv 
+
+2,fiteness
+3,footwear
+12,fathematics
+13,fcience
+14,engineering
+1000,management
+
+:wq!
+
+cat updated_departments.csv 
+
+**setp 3: **  将此csv文件上载到hdfs文件系统 
+hdfs dfs -mkdir departments_csv 
+
+hdfs dfs -put updated_departments.csv departments_csv/ 
+
+hdfs dfs -ls departments_csv/* 
+
+hdfs dfs -cat departments_csv/updated_departments.csv 
+
+**setp 4: **  现在将此数据从hdfs导出到mysql retail_db.departments表。 在上传期间，确保现有部门刚刚更新，并且需要插入新部门  
+sqoop export \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--export-dir=departments_csv \
+--batch \
+--update-key=department_id \
+--update-mode=allowinsert
+
+select * from departments; 
+
+
+**setp 5: **  现在使用以下内容更新updated_departments.csv文件  
+vim updated_departments.csv 
+
+2,Fiteness
+3,Footwear
+12,Fathematics
+13,Fcience
+14,Engineering
+1000,Management
+2000,Quality Check
+
+:wq!
+
+cat updated_departments.csv 
+
+**setp 6: ** 现在将此文件上传到hdfs**  
+hdfs dfs -ls departments_csv/* 
+
+hdfs dfs -cat departments_csv/updated_departments.csv 
+
+hdfs dfs -put -f updated_departments.csv departments_csv/ 
+
+hdfs dfs -cat departments_csv/updated_departments.csv 
+
+**setp 7: **  现在将此数据从hdfs导出到mysql retail_db.departments表。 在上传期间，确保现有部门刚刚更新，并且需要插入新部门  
+sqoop export \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--export-dir=departments_csv \
+--batch \
+--update-key=department_id \
+--update-mode=updateonly
+
+select * from departments; 
