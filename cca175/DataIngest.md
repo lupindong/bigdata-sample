@@ -824,3 +824,153 @@ sqoop export \
 --update-mode=updateonly
 
 select * from departments; 
+
+# solution 15
+## 问题
+**1.在mysql departmetns表中请插入以下记录** 
+insert into departments values(9999, "Data Science");
+**2.现在有一个下游系统将处理该文件的转储。 但是，系统的设计方式只能处理文件，如果字段包含在(')符号引用中，字段的分隔符应该是(~)，并且行需要通过: (冒号)终止。** 
+**3.如果数据本身包含“（双引号）而不是应该通过\** 
+**4.请在departments_encloseby目录中导入departments表，文件应该能够由下游系统处理**  
+
+## 指令  
+
+| 指令               | 描述                                      |
+| ------------------ | ----------------------------------------- |
+|--enclosed-by <char>|Sets a required field enclosing character |
+|--escaped-by <char>|Sets the escape character|
+
+## 脚本  
+
+【fields: ,】【lines: \n】【escaped-by: \】【optionally-enclosed-by: '】
+**setp 1: **  检查并删除历史记录  
+mysql -uretail_dba -pcloudera retail_db; 
+
+select * from departments; 
+
+**setp 2: **  在mysql departmetns表中请插入以下记录  
+insert into departments values(9999, "Data Science");
+
+**setp 3: **  请在departments_encloseby目录中导入departments表，文件应该能够由下游系统处理  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=departments_encloseby \
+--enclosed-by="\'" \
+--escaped-by="\\" \
+--fields-terminated-by="~" \
+--lines-terminated-by=":"  
+
+hdfs dfs -ls departments_encloseby/*  
+
+hdfs dfs -cat departments_encloseby/part-*   
+
+
+# solution 16
+## 问题
+**1.在hive中创建一个表，如下所示** 
+create table departments_hive(department_id int, department_name string);   
+**2.现在从mysql departmetns表导入数据到这个hive表。 请确保使用下面的hive命令可以看到数据** 
+select * from departments_hive; 
+
+## 指令  
+
+
+## 脚本  
+**setp 1: **  检查并删除历史记录  
+hive  
+
+show tables;
+
+**setp 2: **  现在从mysql departmetns表导入数据到这个hive表。 请确保使用下面的hive命令可以看到数据  
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--hive-home=/user/hive/warehouse \
+--hive-import \
+--hive-overwrite \
+--hive-table=departments_hive \
+--fields-terminated-by="\001" 
+
+hdfs dfs -ls /user/hive/warehouse/departments_hive  
+
+hdfs dfs -cat /user/hive/warehouse/departments_hive/part-*  
+
+select * from departments_hive; 
+
+
+# solution 17
+## 问题
+**1.在hive中创建一个表，如下所示** 
+create table departments_hive01(department_id int, department_name string, avg_salary int);   
+**2.使用下面的语句在mysql中创建另一个表** 
+create table if not exists departments_hive01(id int, department_name varchar(45), avg_salary int); 
+
+**3.将department表【mysql】的所有数据复制到departments_hive01表【mysql】使用** 
+insert into departments_hive01 select a.*, null from departments a;
+**同时插入以下数据** 
+insert into departments_hive01 values(777, "Not koown", 1000);
+insert into departments_hive01 values(8888, null, 1000);
+insert into departments_hive01 values(666, null, 1100);
+
+**4.现在将数据从mysql的departments_hive01表导入到这个hive表中。 请确保在hive命令下面显示数据。 另外，在导入时，如果找到departments_name列的空值，则将其替换为“”（空字符串），将id替换为-999** 
+select * from departments_hive01; 
+
+## 指令  
+
+
+## 脚本  
+**setp 1: **  检查并删除历史记录  
+hive  
+
+show tables;
+
+mysql -uretail_dba -pcloudera retail_db;
+
+show tables;
+
+**setp 2: **  在hive中创建一个表，如下所示  
+create table departments_hive01(department_id int, department_name string, avg_salary int); 
+
+show tables;
+
+**setp 3: **  使用下面的语句在mysql中创建另一个表  
+create table if not exists departments_hive01(id int, department_name varchar(45), avg_salary int); 
+
+show tables;
+
+**setp 4: **  将department表【mysql】的所有数据复制到departments_hive01表【mysql】使用，同时插入以下数据  
+select * from departments_hive01;
+
+insert into departments_hive01 select a.*, null from departments a;
+
+insert into departments_hive01 values(777, "Not koown", 1000);
+insert into departments_hive01 values(8888, null, 1000);
+insert into departments_hive01 values(666, null, 1100);
+
+select * from departments_hive01;
+
+**setp 5: **  现在将数据从mysql的departments_hive01表导入到这个hive表中。 请确保在hive命令下面显示数据。 另外，在导入时，如果找到departments_name列的空值，则将其替换为“”（空字符串），将id替换为-999 
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments_hive01 \
+--hive-home=/user/hive/warehouse \
+--hive-import \
+--hive-overwrite \
+--hive-table=departments_hive01 \
+--fields-terminated-by="\001" \
+--null-string="" \
+--null-non-string=-999 \
+--split-by="id"
+
+hdfs dfs -ls /user/hive/warehouse/departments_hive01  
+
+hdfs dfs -cat /user/hive/warehouse/departments_hive01/part-*  
+
+select * from departments_hive01; 
