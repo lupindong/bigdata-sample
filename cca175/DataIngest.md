@@ -1025,4 +1025,77 @@ sqoop export \
 select * from departments_hive02;
 
 
+# solution 19
+## 问题
+**1.将departments表从mysql导入hdfs，以textfile格式存储到departments_text目录** 
+**2.将departments表从mysql导入hdfs，以sequncefile格式存储到departments_sequence目录** 
+**3.将departments表从mysql导入hdfs，以avrofile格式存储到departments_avro目录** 
+**4.将departments表从mysql导入hdfs，以parquetfile格式存储到departments_parquet目录** 
 
+## 指令  
+
+| 指令               | 描述                                      |
+| ------------------ | ----------------------------------------- |
+|--input-fields-terminated-by <char>| Sets the input field separator       |
+|--input-lines-terminated-by <char>|Sets the input end-of-line character|
+
+## 脚本  
+**setp 1: **  将departments表从mysql导入hdfs，以textfile格式存储到departments_text目录  
+hdfs dfs -ls  departments_text
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=departments_text \
+--as-textfile 
+
+hdfs dfs -ls  departments_text 
+
+hdfs dfs -cat departments_text/part-* 
+
+**setp 2: **  将departments表从mysql导入hdfs，以sequencefile格式存储到departments_sequence目录  
+hdfs dfs -ls  departments_sequence
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=departments_sequence \
+--as-sequencefile 
+
+hdfs dfs -ls departments_sequence 
+
+hdfs dfs -cat departments_sequence/part-* 
+
+**setp 3: **  将departments表从mysql导入hdfs，以avrofile格式存储到departments_avro目录  
+hdfs dfs -ls  departments_avro
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=departments_avro \
+--as-avrodatafile 
+
+hdfs dfs -ls departments_avro 
+
+hdfs dfs -cat departments_avro/part-* 
+
+**setp 4: **  将departments表从mysql导入hdfs，以parquetfile格式存储到departments_parquet目录  
+hdfs dfs -ls  departments_parquet
+
+sqoop import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments \
+--target-dir=departments_parquet \
+--as-parquetfile 
+
+hdfs dfs -ls departments_parquet 
+
+hdfs dfs -cat departments_parquet/*.parquet 
