@@ -917,7 +917,7 @@ insert into departments_hive01 values(777, "Not koown", 1000);
 insert into departments_hive01 values(8888, null, 1000);
 insert into departments_hive01 values(666, null, 1100);
 
-**4.现在将数据从mysql的departments_hive01表导入到这个hive表中。 请确保在hive命令下面显示数据。 另外，在导入时，如果找到departments_name列的空值，则将其替换为“”（空字符串），将id替换为-999** 
+**4.现在将数据从mysql的departments_hive01表导入到这个hive表中。 请确保在hive命令下面显示数据。 另外，在导入时，如果找到departments_name列的空值，则将其替换为“”（空字符串），将int列替换为-999** 
 select * from departments_hive01; 
 
 ## 指令  
@@ -974,3 +974,55 @@ hdfs dfs -ls /user/hive/warehouse/departments_hive01
 hdfs dfs -cat /user/hive/warehouse/departments_hive01/part-*  
 
 select * from departments_hive01; 
+
+
+# solution 18
+## 问题
+**1.创建mysql表如下:** 
+create table if not exists departments_hive02(id int, department_name varchar(45), avg_salary int); 
+
+**2.现在从hive表departments_hive01导出数据到mysql表departments_hive02。在导出时，请注意以下内容:** 
+只要有空字符串，它应该在mysql中作为空值加载 
+只要int字段的值为-999，就应该将其创建为空值 
+
+## 指令  
+
+| 指令               | 描述                                      |
+| ------------------ | ----------------------------------------- |
+|--input-fields-terminated-by <char>| Sets the input field separator       |
+|--input-lines-terminated-by <char>|Sets the input end-of-line character|
+
+## 脚本  
+**setp 1: **  检查并删除历史记录  
+hive  
+
+show tables;
+
+mysql -uretail_dba -pcloudera retail_db;
+
+show tables;
+
+**setp 2: **  创建mysql表  
+create table if not exists departments_hive02(id int, department_name varchar(45), avg_salary int); 
+
+show tables;
+
+select * from departments_hive02;
+
+**setp 3: **  现在从hive表departments_hive01导出数据到mysql表departments_hive02
+sqoop export \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=departments_hive02 \
+--export-dir=/user/hive/warehouse/departments_hive01 \
+--input-fields-terminated-by="\001" \
+--input-lines-terminated-by="\n" \
+--input-null-string="" \
+--input-null-non-string=-999 \
+--batch 
+
+select * from departments_hive02;
+
+
+
