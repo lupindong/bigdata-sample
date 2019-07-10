@@ -1099,3 +1099,36 @@ sqoop import \
 hdfs dfs -ls departments_parquet 
 
 hdfs dfs -cat departments_parquet/*.parquet 
+
+
+# solution 20
+## 问题
+**1.编写一个sqoop作业，将mysql的“retail_db.categories”表导入到hdfs，存储目录名为“categories_target_job”** 
+
+## 指令  
+
+## 脚本  
+**setp 1: ** 编写一个sqoop作业，将mysql的“retail_db.categories”表导入到hdfs，存储目录名为“categories_target_job” 
+sqoop job --list 
+
+sqoop job --delete  first_sqoop_job 
+
+sqoop job --create first_sqoop_job \
+-- import \
+--connect=jdbc:mysql://quickstart:3306/retail_db \
+--username=retail_dba \
+--password=cloudera \
+--table=categories \
+--target-dir=categories_target_job \
+--fields-terminated-by="\001" 
+【注意：import前面有空格】
+
+sqoop job --list 
+
+sqoop job --show  first_sqoop_job  
+
+sqoop job --exec  first_sqoop_job  
+
+hdfs dfs -ls categories_target_job 
+
+hdfs dfs -cat categories_target_job/part-* 
