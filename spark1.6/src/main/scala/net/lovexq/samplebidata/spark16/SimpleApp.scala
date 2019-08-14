@@ -16,6 +16,7 @@
 
 package net.lovexq.samplebidata.spark16
 
+import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -27,15 +28,17 @@ import org.apache.spark.{SparkConf, SparkContext}
 object SimpleApp {
   def main(args: Array[String]): Unit = {
 
+    AppUtil.setEnv()
+
     val appName = "Simple Application"
 
-    val master = "local"
+    val master = "yarn-client"
 
     val conf = new SparkConf().setAppName(appName).setMaster(master)
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "hdfs://server2:8020/user/admin/lovexq/mapreduce/input"
+    val textFilePath = "hdfs://quickstart:8020/user/cloudera/word.txt"
 
     val logData = sc.textFile(textFilePath).cache()
 

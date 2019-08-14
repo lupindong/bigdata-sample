@@ -8,8 +8,8 @@ LanceLand <<lupindong@gmail.com>> ,v0.0.1,2019.04.08
 ```shell
 $ spark-shell
 # 载入HDFS数据创建RDD
-scala> val textFile = sc.textFile("hdfs://server2:8020/user/admin/lovexq/mapreduce/input")
-textFile: org.apache.spark.rdd.RDD[String] = hdfs://server2:8020/user/admin/lovexq/mapreduce/input MapPartitionsRDD[9] at textFile at <console>:27
+scala> val textFile = sc.textFile("hdfs://quickstart:8020/user/admin/lovexq/mapreduce/input")
+textFile: org.apache.spark.rdd.RDD[String] = hdfs://quickstart:8020/user/admin/lovexq/mapreduce/input MapPartitionsRDD[9] at textFile at <console>:27
 # 此RDD中的项目数
 scala> textFile.count()
 res2: Long = 10
