@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package net.lovexq.samplebidata.spark
+package net.lovexq.samplebidata.spark16
 
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * ${DESCRIPTION}
+  * DataFrame Demo
   *
   * @author LuPindong
   * @time 2019-04-08 21:43
   */
-object SimpleApp {
-  def main(args: Array[String]): Unit = {
+object DataFrameDemo2 {
 
-    val appName = "Simple Application"
+  /**
+    * Creating Datasets
+    *
+    * @param args
+    */
+  def main(args: Array[String]): Unit = {
+    val appName = "DataFrameDemo Application"
 
     val master = "local"
 
@@ -35,17 +40,23 @@ object SimpleApp {
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "hdfs://server2:8020/user/admin/lovexq/mapreduce/input"
+    val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
-    val logData = sc.textFile(textFilePath).cache()
+    import sqlContext.implicits._
 
-    val numAs = logData.filter(_.contains("a")).count()
+    // Encoders for most common types are automatically provided by importing sqlContext.implicits._
+    val dsq = Seq(1, 2, 3).toDS()
+    val arr = dsq.map(_ + 1).collect() // Returns: Array(2, 3, 4)
 
-    val numBs = logData.filter(_.contains("b")).count()
+    // Encoders are also created for case classes.
+    val ds = Seq(Person("Andy", 32)).toDS()
 
-    println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))
+    // DataFrames can be converted to a Dataset by providing a class. Mapping will be done by name.
+    val path = "file:///D:\\WorkSpaces\\2019\\bigdata-sample\\spark1.6\\src\\main\\resources\\data\\people.json"
+    val people = sqlContext.read.json(path).as[Person]
 
     sc.stop()
-
   }
 }
+
+case class Person(name: String, age: Long)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.lovexq.samplebidata.spark
+package net.lovexq.samplebidata.spark16
 
 import org.apache.spark.{SparkConf, SparkContext}
 
