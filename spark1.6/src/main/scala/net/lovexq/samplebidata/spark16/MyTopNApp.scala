@@ -4,16 +4,16 @@ import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.SparkContext
 
 /**
-  * TOP N 求解
+  * 我的TopN
   *
   * @author LuPindong
   * @time 2019-08-08 17:18
   */
-object TopNApp {
+object MyTopNApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
-    var filePath = "file:///D:/WorkSpaces/2019/bigdata-sample/spark1.6/src/main/resources/data/topn"
+    var filePath = "file:////home//data/topn"
     if (!args.isEmpty) {
       filePath = args(0)
     }

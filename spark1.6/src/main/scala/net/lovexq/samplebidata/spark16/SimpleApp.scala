@@ -32,7 +32,7 @@ object SimpleApp {
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "file:///D:/WorkSpaces/2019/bigdata-sample/spark1.6/src/main/resources/data/word.txt"
+    val textFilePath = "file:////home//data/word.txt"
 
     val logData = sc.textFile(textFilePath).cache()
 

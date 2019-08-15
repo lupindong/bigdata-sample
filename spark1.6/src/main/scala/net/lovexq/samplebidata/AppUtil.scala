@@ -14,7 +14,7 @@ object AppUtil {
   def setEnvProperty(): Unit = {
     if (WINDOWS) {
       System.getProperties.setProperty("hadoop.home.dir", "D:\\Development\\hadoop-2.6.5")
-      System.getProperties.setProperty("HADOOP_USER_NAME", "cloudera")
+      System.getProperties.setProperty("HADOOP_USER_NAME", "lupindong")
     }
   }
 

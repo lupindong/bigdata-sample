@@ -4,7 +4,7 @@ import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.SparkContext
 
 /**
-  * 官方最大最小值求解
+  * 最大最小值
   *
   * @author LuPindong
   * @time 2019-08-08 17:18
@@ -13,7 +13,7 @@ object MaxMinApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
-    var filePath = "file:///D:/WorkSpaces/2019/bigdata-sample/spark1.6/src/main/resources/data/maxmin"
+    var filePath = "file:////home//data/maxmin"
     if (!args.isEmpty) {
       filePath = args(0)
     }
