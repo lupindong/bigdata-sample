@@ -13,7 +13,7 @@ object MyTopNApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
-    var filePath = "file:////home//data/topn"
+    var filePath = "file:///home/cloudera/data/topn"
     if (!args.isEmpty) {
       filePath = args(0)
     }

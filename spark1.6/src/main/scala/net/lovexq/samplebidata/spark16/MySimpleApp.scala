@@ -32,7 +32,7 @@ object MySimpleApp {
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "file:////home//data/word.txt"
+    val textFilePath = "file:///home/cloudera/data/word.txt"
 
     val logData = sc.textFile(textFilePath).cache()
 
