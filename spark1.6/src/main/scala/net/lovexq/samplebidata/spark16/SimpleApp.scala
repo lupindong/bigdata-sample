@@ -28,17 +28,11 @@ import org.apache.spark.{SparkConf, SparkContext}
 object SimpleApp {
   def main(args: Array[String]): Unit = {
 
-    AppUtil.setEnv()
-
-    val appName = "Simple Application"
-
-    val master = "yarn-client"
-
-    val conf = new SparkConf().setAppName(appName).setMaster(master)
+    val conf = AppUtil.getSparkConf("Simple Application")
 
     val sc = new SparkContext(conf)
 
-    val textFilePath = "hdfs://quickstart:8020/user/cloudera/word.txt"
+    val textFilePath = "hdfs://server0:8020/user/cloudera/word.txt"
 
     val logData = sc.textFile(textFilePath).cache()
 
