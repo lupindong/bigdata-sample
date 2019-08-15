@@ -1,9 +1,10 @@
 package net.lovexq.samplebidata.spark16
 
-import org.apache.spark.{SparkConf, SparkContext}
+import net.lovexq.samplebidata.AppUtil
+import org.apache.spark.SparkContext
 
 /**
-  * 示例APP
+  * TOP N 求解
   *
   * @author LuPindong
   * @time 2019-08-08 17:18
@@ -12,11 +13,10 @@ object TopN {
 
   def main(args: Array[String]): Unit = {
 
-    val conf = new SparkConf().setMaster("yarn-client").setAppName("TopN Application")
-
+    val conf = AppUtil.getSparkConf("TopN Application")
     val sc = new SparkContext(conf)
 
-    val filePath = "/user/cloudera/topn/"
+    val filePath = "file:///D:/home/lovexq/cloudera/topn"
 
     val dataRDD = sc.textFile(filePath).cache
 
