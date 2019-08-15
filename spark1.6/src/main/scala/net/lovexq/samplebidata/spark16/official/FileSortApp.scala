@@ -1,4 +1,4 @@
-package net.lovexq.samplebidata.spark16
+package net.lovexq.samplebidata.spark16.official
 
 import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.{HashPartitioner, SparkContext}
@@ -9,7 +9,7 @@ import org.apache.spark.{HashPartitioner, SparkContext}
   * @author LuPindong
   * @time 2019-08-08 17:18
   */
-object OfficialFileSortApp {
+object FileSortApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录

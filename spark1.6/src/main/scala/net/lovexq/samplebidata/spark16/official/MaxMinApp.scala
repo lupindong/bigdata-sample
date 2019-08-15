@@ -1,4 +1,4 @@
-package net.lovexq.samplebidata.spark16
+package net.lovexq.samplebidata.spark16.official
 
 import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.SparkContext
@@ -9,7 +9,7 @@ import org.apache.spark.SparkContext
   * @author LuPindong
   * @time 2019-08-08 17:18
   */
-object OfficialMaxMinApp {
+object MaxMinApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
