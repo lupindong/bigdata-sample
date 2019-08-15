@@ -9,7 +9,7 @@ import org.apache.spark.SparkContext
   * @author LuPindong
   * @time 2019-08-08 17:18
   */
-object TopN {
+object TopNApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
