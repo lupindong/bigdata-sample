@@ -25,7 +25,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * @author LuPindong
   * @time 2019-04-08 21:43
   */
-object SimpleApp {
+object MySimpleApp {
   def main(args: Array[String]): Unit = {
 
     val conf = AppUtil.getSparkConf("Simple Application")
