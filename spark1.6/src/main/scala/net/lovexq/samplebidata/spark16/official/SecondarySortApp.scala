@@ -1,7 +1,7 @@
 package net.lovexq.samplebidata.spark16.official
 
 import net.lovexq.samplebidata.AppUtil
-import net.lovexq.samplebidata.spark16.SecondarySortKey
+import net.lovexq.samplebidata.support.SecondarySortKey
 import org.apache.spark.SparkContext
 
 /**

@@ -1,4 +1,4 @@
-package net.lovexq.samplebidata.spark16
+package net.lovexq.samplebidata.support
 
 /**
   * ${DESCRIPTION}
