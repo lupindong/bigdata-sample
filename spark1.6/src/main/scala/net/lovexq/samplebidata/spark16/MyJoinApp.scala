@@ -29,7 +29,7 @@ object MyJoinApp {
     val ratingsHeader = ratingsRDD.first()
 
     val rdd1 = moviesRDD
-      .filter(!moviesHeader.equals(_))
+      .filter(moviesHeader != _)
       .map(e => {
         val arr = e.split(",")
         (arr(0).toInt, arr(1).trim)
@@ -37,7 +37,7 @@ object MyJoinApp {
 
     // 计算平均分，过滤出超过4.0分的电影
     val rdd2 = ratingsRDD
-      .filter(!ratingsHeader.equals(_))
+      .filter(ratingsHeader != _)
       .map(e => {
         val arr = e.split(",")
         (arr(1).toInt, (arr(2).toDouble, 1))

@@ -30,7 +30,7 @@ object JoinApp {
 
     //extract (movieid,rating) 
     val rating = ratingsRDD
-      .filter(!ratingsHeader.equals(_))
+      .filter(ratingsHeader != _)
       .map(line => {
         val fileds = line.split(",")
         (fileds(1).toInt, fileds(2).toDouble)
@@ -45,7 +45,7 @@ object JoinApp {
 
     //get (MovieID,MovieName)
     val movieskey = moviesRDD
-      .filter(!moviesHeader.equals(_))
+      .filter(moviesHeader != _)
       .map(line => {
         val fileds = line.split(",")
         (fileds(0).toInt, fileds(1))
