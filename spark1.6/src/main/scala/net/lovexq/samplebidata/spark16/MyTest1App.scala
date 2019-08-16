@@ -41,12 +41,18 @@ object MyTest1App {
       .count()
     println(s"该系共开设来多少门课程: ${clasCount}")
 
-    //（3）Tom同学的总成绩平均分是多少；
-    val tomRec = dataRdd
+    //（3）Tom同学的总成绩平均分是多少；30.8
+    val tomAvg = dataRdd
       .filter("Tom" == _ (0).trim)
-      .map(_ (2).toDouble)
-      .collect()
-    val tomAvg = tomRec.reduce(_ + _) / tomRec.length
+      .map(e => (e(0), e(2).toDouble))
+      .combineByKey(
+        (e) => (e, 1),
+        (acc: (Double, Int), e) => (acc._1 + e, acc._2 + 1),
+        (acc1: (Double, Int), acc2: (Double, Int)) => (acc1._1 + acc2._1, acc1._2 + acc2._2)
+      )
+      .map { case (_, v) => v._1 / v._2 }
+      .first()
+
     println(s"Tom同学的总成绩平均分是多少: ${tomAvg}")
 
     //（4）求每名同学的选修的课程门数；
@@ -57,7 +63,7 @@ object MyTest1App {
       .sortByKey(ascending = true, numPartitions = 1)
       .foreach(println)
 
-    //（5）该系DataBase课程共有多少人选修；
+    //（5）该系DataBase课程共有多少人选修；126
     val dbCount = dataRdd
       .filter("DataBase" == _ (1).trim)
       .count()
@@ -75,13 +81,12 @@ object MyTest1App {
       .map { case (k, v) => (k, v._1 / v._2) }
       .foreach(println)
 
-    //（7）使用累加器计算共有多少人选了 DataBase 这门课。
+    //（7）使用累加器计算共有多少人选了 DataBase 这门课。126
     val dbAcc = sc.accumulator(0L, "DataBase")
-    dataRdd.map(e => {
-      if ("DataBase" == e(1).trim) {
-        dbAcc.add(1L)
-      }
-    }).collect
+    dataRdd
+      .filter("DataBase" == _ (1).trim)
+      .map(e => (e(0), 1L))
+      .foreach(e => dbAcc.add(e._2))
 
     println(s"使用累加器计算共有多少人选了DataBase这门课: ${dbAcc.value}")
 
