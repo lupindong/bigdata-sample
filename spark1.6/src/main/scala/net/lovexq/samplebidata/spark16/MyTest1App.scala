@@ -79,7 +79,7 @@ object MyTest1App {
         (acc1: (Double, Int), acc2: (Double, Int)) => (acc1._1 + acc2._1, acc1._2 + acc2._2)
       )
       .map { case (k, v) => (k, v._1 / v._2) }
-      .foreach(println)
+      .foreach(x => println(f"${x._1} = ${x._2}%1.2f"))
 
     //（7）使用累加器计算共有多少人选了 DataBase 这门课。126
     val dbAcc = sc.accumulator(0L, "DataBase")
