@@ -6,6 +6,7 @@ lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 lazy val sparkcore = "org.apache.spark" %% "spark-core" % "1.6.0"
 lazy val sparksql = "org.apache.spark" %% "spark-sql" % "1.6.0"
 lazy val sparkyarn = "org.apache.spark" %% "spark-yarn" % "1.6.0"
+lazy val mysqlconnect = "mysql" % "mysql-connector-java" % "5.1.42"
 
 
 lazy val root = (project in file("."))
@@ -14,5 +15,6 @@ lazy val root = (project in file("."))
     libraryDependencies += scalatest,
     libraryDependencies += sparkcore,
     libraryDependencies += sparksql,
-    libraryDependencies += sparkyarn
+    libraryDependencies += sparkyarn,
+    libraryDependencies += mysqlconnect
   )
