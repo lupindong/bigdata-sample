@@ -1,4 +1,4 @@
-package net.lovexq.samplebidata.spark16.official
+package net.lovexq.samplebidata.spark16.rdd.official
 
 import net.lovexq.samplebidata.AppUtil
 import org.apache.spark.{HashPartitioner, SparkContext}

@@ -1,7 +1,7 @@
-package net.lovexq.samplebidata.spark16
+package net.lovexq.samplebidata.spark16.rdd
 
 import net.lovexq.samplebidata.AppUtil
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
 
 /**
   * ${DESCRIPTION}

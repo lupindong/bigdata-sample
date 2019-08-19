@@ -1,16 +1,16 @@
-package net.lovexq.samplebidata.spark16
+package net.lovexq.samplebidata.spark16.rdd.official
 
 import net.lovexq.samplebidata.AppUtil
 import net.lovexq.samplebidata.support.SecondarySortKey
 import org.apache.spark.SparkContext
 
 /**
-  * 我的二次排序
+  * 二次排序
   *
   * @author LuPindong
   * @time 2019-08-08 17:18
   */
-object MySecondarySortApp {
+object SecondarySortApp {
 
   def main(args: Array[String]): Unit = {
     // 默认数据目录
@@ -23,15 +23,10 @@ object MySecondarySortApp {
     val sc = new SparkContext(conf)
     val dataRDD = sc.textFile(filePath).cache
 
-    dataRDD
-      .filter(e => e != null && !e.isEmpty)
-      .map(e => {
-        val arr = e.split(" ").filter(!_.isEmpty)
-        (new SecondarySortKey(arr(0).toInt, arr(1).toInt), e)
-      })
-      .sortByKey(false, 1)
-      .map(_._2)
-      .foreach(println)
+    val pairWithSortKey = dataRDD.map(line => (new SecondarySortKey(line.split(" ")(0).toInt, line.split(" ")(1).toInt), line))
+    val sorted = pairWithSortKey.sortByKey(false)
+    val sortedResult = sorted.map(sortedLine => sortedLine._2)
+    sortedResult.collect().foreach(println)
 
     sc.stop()
   }
